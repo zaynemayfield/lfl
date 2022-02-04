@@ -1,0 +1,414 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model attendance {
+  id         Int       @id @default(autoincrement()) @db.UnsignedInt
+  created    DateTime  @default(now()) @db.Timestamp(0)
+  updated    DateTime? @default(now()) @db.Timestamp(0)
+  matchId    Int       @default(0) @db.UnsignedInt
+  userId     Int       @default(0) @db.UnsignedInt
+  willAttend Boolean   @default(false)
+  match      match     @relation(fields: [matchId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "attendance_ibfk_1")
+  user       user      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "attendance_ibfk_2")
+
+  @@index([matchId], map: "matchId on matchgoal")
+  @@index([userId], map: "userId on matchgoal")
+}
+
+model club {
+  id       Int        @id @default(autoincrement()) @db.UnsignedInt
+  created  DateTime   @default(now()) @db.Timestamp(0)
+  updated  DateTime?  @default(now()) @db.Timestamp(0)
+  name     String     @db.VarChar(256)
+  clubteam clubteam[]
+}
+
+model clubteam {
+  id      Int       @id @default(autoincrement()) @db.UnsignedInt
+  created DateTime  @default(now()) @db.Timestamp(0)
+  updated DateTime? @default(now()) @db.Timestamp(0)
+  clubId  Int       @default(0) @db.UnsignedInt
+  teamId  Int       @default(0) @db.UnsignedInt
+  club    club      @relation(fields: [clubId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "clubId on clubteam")
+  team    team      @relation(fields: [teamId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teamId on clubteam")
+
+  @@index([clubId], map: "clubId on clubteam")
+  @@index([teamId], map: "teamId on clubteam")
+}
+
+model field {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  created     DateTime  @default(now()) @db.Timestamp(0)
+  updated     DateTime? @default(now()) @db.Timestamp(0)
+  name        String    @db.VarChar(256)
+  description String?   @db.VarChar(2000)
+  match       match[]
+}
+
+model friendreferral {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  created     DateTime  @default(now()) @db.Timestamp(0)
+  updated     DateTime? @default(now()) @db.Timestamp(0)
+  userId      Int       @db.UnsignedInt
+  friendPhone String?   @db.VarChar(50)
+  friendEmail String?   @db.VarChar(100)
+  user        user      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on friendreferral")
+
+  @@index([userId], map: "userId on friendreferral")
+}
+
+model league {
+  id               Int            @id @default(autoincrement()) @db.UnsignedInt
+  created          DateTime       @default(now()) @db.Timestamp(0)
+  updated          DateTime?      @default(now()) @db.Timestamp(0)
+  leagueCategoryId Int            @db.UnsignedInt
+  leagueName       String         @db.VarChar(256)
+  description      String?        @db.VarChar(2000)
+  dayOfWeek        Int?           @db.UnsignedInt
+  order            Int?           @db.UnsignedInt
+  price            Float?         @db.Float
+  leaguecategory   leaguecategory @relation(fields: [leagueCategoryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "leagueCategoryId on league")
+  leaguemember     leaguemember[]
+  leagueteam       leagueteam[]
+
+  @@index([leagueCategoryId], map: "leagueCategoryId on league")
+}
+
+model leaguecategory {
+  id          Int                @id @default(autoincrement()) @db.UnsignedInt
+  created     DateTime           @default(now()) @db.Timestamp(0)
+  updated     DateTime?          @default(now()) @db.Timestamp(0)
+  name        String             @db.VarChar(256)
+  description String?            @db.VarChar(2000)
+  ageFrom     Int                @db.UnsignedInt
+  ageTo       Int                @db.UnsignedInt
+  sex         leaguecategory_sex @default(Coed)
+  league      league[]
+}
+
+model leaguemember {
+  id       Int       @id @default(autoincrement()) @db.UnsignedInt
+  created  DateTime  @default(now()) @db.Timestamp(0)
+  updated  DateTime? @default(now()) @db.Timestamp(0)
+  userId   Int       @default(0) @db.UnsignedInt
+  leagueId Int       @default(0) @db.UnsignedInt
+  league   league    @relation(fields: [leagueId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "leagueId on leaguemember")
+  user     user      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on leaguemember")
+
+  @@index([leagueId], map: "leagueId on leaguemember")
+  @@index([userId], map: "userId on leaguemember")
+}
+
+model leagueteam {
+  id       Int       @id @default(autoincrement()) @db.UnsignedInt
+  created  DateTime  @default(now()) @db.Timestamp(0)
+  updated  DateTime? @default(now()) @db.Timestamp(0)
+  teamId   Int       @default(0) @db.UnsignedInt
+  leagueId Int       @default(0) @db.UnsignedInt
+  league   league    @relation(fields: [leagueId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "leagueId on leagueteam")
+  team     team      @relation(fields: [teamId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teamId on leagueteam")
+
+  @@index([leagueId], map: "leagueId on leagueteam")
+  @@index([teamId], map: "teamId on leagueteam")
+}
+
+model match {
+  id                          Int                 @id @default(autoincrement()) @db.UnsignedInt
+  created                     DateTime            @default(now()) @db.Timestamp(0)
+  updated                     DateTime?           @default(now()) @db.Timestamp(0)
+  timeSlotId                  Int                 @default(0) @db.UnsignedInt
+  fieldId                     Int                 @default(0) @db.UnsignedInt
+  homeTeamId                  Int                 @default(0) @db.UnsignedInt
+  awayTeamId                  Int                 @default(0) @db.UnsignedInt
+  refereeId                   Int                 @default(0) @db.UnsignedInt
+  homeGoals                   Int                 @default(0) @db.UnsignedInt
+  awayGoals                   Int                 @default(0) @db.UnsignedInt
+  team_match_awayTeamIdToteam team                @relation("match_awayTeamIdToteam", fields: [awayTeamId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "awayTeamId on match")
+  field                       field               @relation(fields: [fieldId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fieldId on match")
+  team_match_homeTeamIdToteam team                @relation("match_homeTeamIdToteam", fields: [homeTeamId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "homeTeamId on match")
+  user                        user                @relation(fields: [refereeId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "refereeId on match")
+  timeslot                    timeslot            @relation(fields: [timeSlotId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "timeSlotId on match")
+  attendance                  attendance[]
+  matchfoul                   matchfoul[]
+  matchgoal                   matchgoal[]
+  refereeattendance           refereeattendance[]
+  refereepay                  refereepay[]
+  refereesurvey               refereesurvey[]
+
+  @@index([awayTeamId], map: "awayTeamId on match")
+  @@index([fieldId], map: "fieldId on match")
+  @@index([homeTeamId], map: "homeTeamId on match")
+  @@index([refereeId], map: "refereeId on match")
+  @@index([timeSlotId], map: "timeSlotId on match")
+}
+
+model matchfoul {
+  id      Int            @id @default(autoincrement()) @db.UnsignedInt
+  created DateTime       @default(now()) @db.Timestamp(0)
+  updated DateTime?      @default(now()) @db.Timestamp(0)
+  matchId Int            @default(0) @db.UnsignedInt
+  userId  Int            @default(0) @db.UnsignedInt
+  type    matchfoul_type
+  note    String         @db.VarChar(2000)
+  match   match          @relation(fields: [matchId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "matchfoul_ibfk_1")
+  user    user           @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "matchfoul_ibfk_2")
+
+  @@index([matchId], map: "matchId on matchgoal")
+  @@index([userId], map: "userId on matchgoal")
+}
+
+model matchgoal {
+  id      Int       @id @default(autoincrement()) @db.UnsignedInt
+  created DateTime  @default(now()) @db.Timestamp(0)
+  updated DateTime? @default(now()) @db.Timestamp(0)
+  matchId Int       @default(0) @db.UnsignedInt
+  userId  Int       @default(0) @db.UnsignedInt
+  teamId  Int       @default(0) @db.UnsignedInt
+  match   match     @relation(fields: [matchId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "matchId on matchgoal")
+  team    team      @relation(fields: [teamId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teamId on matchgoal")
+  user    user      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on matchgoal")
+
+  @@index([matchId], map: "matchId on matchgoal")
+  @@index([teamId], map: "teamId on matchgoal")
+  @@index([userId], map: "userId on matchgoal")
+}
+
+model offdays {
+  id      Int       @id @default(autoincrement()) @db.UnsignedInt
+  created DateTime  @default(now()) @db.Timestamp(0)
+  updated DateTime? @default(now()) @db.Timestamp(0)
+  date    DateTime? @db.Date
+}
+
+model playercard {
+  id      Int               @id @default(autoincrement()) @db.UnsignedInt
+  created DateTime          @default(now()) @db.Timestamp(0)
+  updated DateTime?         @default(now()) @db.Timestamp(0)
+  userId  Int               @db.UnsignedInt
+  image   String            @db.VarChar(512)
+  notes   String            @db.VarChar(512)
+  status  playercard_status @default(Pending)
+  user    user              @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on playercard")
+
+  @@index([userId], map: "userId on playercard")
+}
+
+model refereeattendance {
+  id      Int       @id @default(autoincrement()) @db.UnsignedInt
+  created DateTime  @default(now()) @db.Timestamp(0)
+  updated DateTime? @default(now()) @db.Timestamp(0)
+  matchId Int       @default(0) @db.UnsignedInt
+  userId  Int       @default(0) @db.UnsignedInt
+  teamId  Int       @default(0) @db.UnsignedInt
+  match   match     @relation(fields: [matchId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "refereeattendance_ibfk_1")
+  team    team      @relation(fields: [teamId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teamId on refereeattendance")
+  user    user      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "refereeattendance_ibfk_2")
+
+  @@index([matchId], map: "matchId on matchgoal")
+  @@index([teamId], map: "teamId on refereeattendance")
+  @@index([userId], map: "userId on matchgoal")
+}
+
+model refereeinfo {
+  id            Int       @id @default(autoincrement()) @db.UnsignedInt
+  created       DateTime  @default(now()) @db.Timestamp(0)
+  updated       DateTime? @default(now()) @db.Timestamp(0)
+  userId        Int       @default(0) @db.UnsignedInt
+  legalFullName String    @db.VarChar(256)
+  streetAddress String    @db.VarChar(256)
+  suiteNumber   String    @db.VarChar(256)
+  city          String    @db.VarChar(256)
+  state         String    @db.VarChar(256)
+  zip           String    @db.VarChar(256)
+  ssn           String    @db.VarChar(256)
+  user          user      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on refereeinfo")
+
+  @@index([userId], map: "userId on refereeinfo")
+}
+
+model refereepay {
+  id        Int       @id @default(autoincrement()) @db.UnsignedInt
+  created   DateTime  @default(now()) @db.Timestamp(0)
+  updated   DateTime? @default(now()) @db.Timestamp(0)
+  userId    Int       @default(0) @db.UnsignedInt
+  matchId   Int       @default(0) @db.UnsignedInt
+  payAmount Float     @default(0.00) @db.Float
+  match     match     @relation(fields: [matchId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "matchId on refereepay")
+  user      user      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on refereepay")
+
+  @@index([matchId], map: "matchId on refereepay")
+  @@index([userId], map: "userId on refereepay")
+}
+
+model refereesurvey {
+  id                Int       @id @default(autoincrement()) @db.UnsignedInt
+  created           DateTime  @default(now()) @db.Timestamp(0)
+  updated           DateTime? @default(now()) @db.Timestamp(0)
+  userId            Int       @default(0) @db.UnsignedInt
+  matchId           Int       @default(0) @db.UnsignedInt
+  gameFlow          Int       @default(5) @db.UnsignedInt
+  clearCalls        Int       @default(5) @db.UnsignedInt
+  aggressivePlayers Int       @default(5) @db.UnsignedInt
+  attitude          Int       @default(5) @db.UnsignedInt
+  match             match     @relation(fields: [matchId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "refereesurvey_ibfk_1")
+  user              user      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "refereesurvey_ibfk_2")
+
+  @@index([matchId], map: "matchId on refereepay")
+  @@index([userId], map: "userId on refereepay")
+}
+
+model season {
+  id        Int       @id @default(autoincrement()) @db.UnsignedInt
+  created   DateTime  @default(now()) @db.Timestamp(0)
+  updated   DateTime? @default(now()) @db.Timestamp(0)
+  startDate DateTime  @db.Date
+  endDate   DateTime  @db.Date
+  name      String?   @db.VarChar(512)
+}
+
+model shirt {
+  id          Int          @id @default(autoincrement()) @db.UnsignedInt
+  created     DateTime     @default(now()) @db.Timestamp(0)
+  updated     DateTime?    @default(now()) @db.Timestamp(0)
+  size        String       @db.VarChar(256)
+  order       Int          @db.TinyInt
+  description String?      @db.VarChar(2000)
+  sex         shirt_sex?   @default(Unisex)
+  price       Float?       @db.Float
+  shirtorder  shirtorder[]
+}
+
+model shirtorder {
+  id      Int               @id @default(autoincrement()) @db.UnsignedInt
+  created DateTime          @default(now()) @db.Timestamp(0)
+  updated DateTime?         @default(now()) @db.Timestamp(0)
+  userId  Int               @db.UnsignedInt
+  shirtId Int               @db.UnsignedInt
+  notes   String?           @db.VarChar(256)
+  status  shirtorder_status @default(Pending)
+  shirt   shirt             @relation(fields: [shirtId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "shirtId on shirtOrder")
+  user    user              @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on shirtOrder")
+
+  @@index([shirtId], map: "shirtId on shirtOrder")
+  @@index([userId], map: "userId on shirtOrder")
+}
+
+model sysvar {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  created     DateTime  @default(now()) @db.Timestamp(0)
+  updated     DateTime? @default(now()) @db.Timestamp(0)
+  name        String    @db.VarChar(256)
+  value       String    @db.VarChar(256)
+  description String    @db.VarChar(256)
+}
+
+model team {
+  id                           Int                 @id @default(autoincrement()) @db.UnsignedInt
+  created                      DateTime            @default(now()) @db.Timestamp(0)
+  updated                      DateTime?           @default(now()) @db.Timestamp(0)
+  name                         String              @db.VarChar(256)
+  clubteam                     clubteam[]
+  leagueteam                   leagueteam[]
+  match_match_awayTeamIdToteam match[]             @relation("match_awayTeamIdToteam")
+  match_match_homeTeamIdToteam match[]             @relation("match_homeTeamIdToteam")
+  matchgoal                    matchgoal[]
+  refereeattendance            refereeattendance[]
+  teammember                   teammember[]
+}
+
+model teammember {
+  id      Int       @id @default(autoincrement()) @db.UnsignedInt
+  created DateTime  @default(now()) @db.Timestamp(0)
+  updated DateTime? @default(now()) @db.Timestamp(0)
+  userId  Int       @default(0) @db.UnsignedInt
+  teamid  Int       @default(0) @db.UnsignedInt
+  team    team      @relation(fields: [teamid], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teamId on teammember")
+  user    user      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on teammember")
+
+  @@index([teamid], map: "teamId on teammember")
+  @@index([userId], map: "userId on teammember")
+}
+
+model template {
+  id      Int       @id @default(autoincrement()) @db.UnsignedInt
+  created DateTime  @default(now()) @db.Timestamp(0)
+  updated DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model timeslot {
+  id        Int       @id @default(autoincrement()) @db.UnsignedInt
+  created   DateTime  @default(now()) @db.Timestamp(0)
+  updated   DateTime? @default(now()) @db.Timestamp(0)
+  dayOfWeek Int
+  startTime DateTime  @db.Time(0)
+  endTime   DateTime  @db.Time(0)
+  match     match[]
+}
+
+model user {
+  id                Int                 @id @default(autoincrement()) @db.UnsignedInt
+  created           DateTime            @default(now()) @db.Timestamp(0)
+  updated           DateTime?           @default(now()) @db.Timestamp(0)
+  firstName         String              @db.VarChar(100)
+  lastName          String              @db.VarChar(100)
+  dob               String              @db.VarChar(100)
+  phone             String              @db.VarChar(100)
+  shirtSize         Int                 @db.UnsignedInt
+  sex               user_sex?           @default(M)
+  keeper            Int                 @default(0) @db.TinyInt
+  referee           Int                 @default(0) @db.TinyInt
+  admin             Int                 @default(0) @db.TinyInt
+  attendance        attendance[]
+  friendreferral    friendreferral[]
+  leaguemember      leaguemember[]
+  match             match[]
+  matchfoul         matchfoul[]
+  matchgoal         matchgoal[]
+  playercard        playercard[]
+  refereeattendance refereeattendance[]
+  refereeinfo       refereeinfo[]
+  refereepay        refereepay[]
+  refereesurvey     refereesurvey[]
+  shirtorder        shirtorder[]
+  teammember        teammember[]
+}
+
+enum leaguecategory_sex {
+  Male
+  Female
+  Coed
+}
+
+enum matchfoul_type {
+  Yellow
+  Red
+}
+
+enum playercard_status {
+  Pending
+  Ready
+  Complete
+}
+
+enum shirt_sex {
+  Male
+  Femail
+  Unisex
+}
+
+enum shirtorder_status {
+  Pending
+  Ready
+  Complete
+}
+
+enum user_sex {
+  M
+  F
+}

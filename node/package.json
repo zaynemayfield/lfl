@@ -1,0 +1,38 @@
+{
+  "name": "lfl",
+  "version": "1.0.0",
+  "description": "Lubbock Futsal League for indoor soccer",
+  "main": "index.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/whitegumby/lfl.git"
+  },
+  "keywords": [
+    "Soccer",
+    "Futsal",
+    "Lubbock"
+  ],
+  "author": "Zayne Mayfield",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/whitegumby/lfl/issues"
+  },
+  "homepage": "https://github.com/whitegumby/lfl#readme",
+  "dependencies": {
+    "@prisma/client": "^3.9.1",
+    "bcrypt": "^5.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.2",
+    "express-busboy": "^8.0.0",
+    "joi": "^17.6.0",
+    "jsonwebtoken": "^8.5.1",
+    "sharp": "^0.30.0"
+  },
+  "devDependencies": {
+    "prisma": "^3.9.1"
+  }
+}
