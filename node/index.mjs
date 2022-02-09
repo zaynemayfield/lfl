@@ -7,12 +7,14 @@ javascript will do all imports before any other code, so
  to make a module that calls dotenv.config
  */
 import userController from './controllers/userController.mjs'
-import projectController from './controllers/projectController.mjs'
-import materialController from './controllers/materialController.mjs'
-import lineItemController from './controllers/lineItemController.mjs'
+import matchController from './controllers/matchController.mjs'
+import refereeController from './controllers/refereeController.mjs'
+import systemController from './controllers/systemController.mjs'
 import verifyToken from './utilities/verifyToken.mjs'
-
+import leagueController from './controllers/leagueController.mjs'
+import referralController from './controllers/referralController.mjs'
 import busboy from 'express-busboy'
+
 
 // Creating Express App
 const app = express()
@@ -35,37 +37,40 @@ busboy.extend(app, {
 // Routes that don't require authentication
 app.post('/user/register', userController.create.bind(userController))
 app.post('/user/login', userController.login.bind(userController))
-app.get('/projects/public', projectController.publicList.bind(projectController))
+app.get('/league/getLeagueCategories', leagueController.getLeagueCategories.bind(leagueController))
+app.post('/league/register', leagueController.register.bind(leagueController))
+app.post('/referral/inviteFriendCreate', referralController.inviteFriendCreate.bind(referralController))
+app.get('/referral/addToWaitList/:id', referralController.addToWaitList.bind(referralController))
 
 // Middleware for JWT
 app.use(verifyToken)
 
 // USER
-app.get('/user/:id', userController.read.bind(userController))
-app.get('/user/delete/:id', userController.delete.bind(userController))
+// app.get('/user/:id', userController.read.bind(userController))
+// app.get('/user/delete/:id', userController.delete.bind(userController))
 
-// PROJECT
-app.post('/project/create', projectController.create.bind(projectController))
-app.get('/projects', projectController.list.bind(projectController))
-app.get('/project/:id', projectController.read.bind(projectController))
-app.post('/project/update/:id', projectController.update.bind(projectController))
-app.get('/project/delete/:id', projectController.delete.bind(projectController))
+// match
+// app.post('/match/create', matchController.create.bind(matchController))
+// app.get('/matchs', matchController.list.bind(matchController))
+// app.get('/match/:id', matchController.read.bind(matchController))
+// app.post('/match/update/:id', matchController.update.bind(matchController))
+// app.get('/match/delete/:id', matchController.delete.bind(matchController))
 
-// MATERIAL
-app.post('/project/material/create', materialController.create.bind(materialController))
-app.get('/project/material/:id', materialController.read.bind(materialController))
-app.get('/project/materials/:id', materialController.readAll.bind(materialController))
-app.post('/project/material/update/:id', materialController.update.bind(materialController))
-app.get('/project/material/delete/:id', materialController.delete.bind(materialController))
+// referee
+// app.post('/match/referee/create', refereeController.create.bind(refereeController))
+// app.get('/match/referee/:id', refereeController.read.bind(refereeController))
+// app.get('/match/referees/:id', refereeController.readAll.bind(refereeController))
+// app.post('/match/referee/update/:id', refereeController.update.bind(refereeController))
+// app.get('/match/referee/delete/:id', refereeController.delete.bind(refereeController))
 
 // Line Items
-app.post('/project/material/line-item/create', lineItemController.create.bind(lineItemController))
-app.get('/project/material/line-items/both/:id', lineItemController.both.bind(lineItemController))
-app.get('/project/material/line-items/:id', lineItemController.readAll.bind(lineItemController))
-app.get('/project/material/line-item/:id', lineItemController.read.bind(lineItemController))
-app.post('/project/material/line-item/update/', lineItemController.update.bind(lineItemController))
-app.get('/project/material/line-item/duplicate/:id', lineItemController.duplicate.bind(lineItemController))
-app.get('/project/material/line-item/delete/:id', lineItemController.delete.bind(lineItemController))
+// app.post('/match/referee/line-item/create', systemController.create.bind(systemController))
+// app.get('/match/referee/line-items/both/:id', systemController.both.bind(systemController))
+// app.get('/match/referee/line-items/:id', systemController.readAll.bind(systemController))
+// app.get('/match/referee/line-item/:id', systemController.read.bind(systemController))
+// app.post('/match/referee/line-item/update/', systemController.update.bind(systemController))
+// app.get('/match/referee/line-item/duplicate/:id', systemController.duplicate.bind(systemController))
+// app.get('/match/referee/line-item/delete/:id', systemController.delete.bind(systemController))
 
 // All
 app.all('*', (req, res) => {

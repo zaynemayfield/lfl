@@ -13,4 +13,9 @@ export default class Helper {
       ]
     })
   }
+  calculateAge(dateString) { // birthday is a date
+    var birthday = +new Date(dateString);
+    return ~~((Date.now() - birthday) / (31557600000));
+}
+
 }

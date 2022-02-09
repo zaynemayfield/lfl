@@ -51,30 +51,19 @@ model field {
   match       match[]
 }
 
-model friendreferral {
-  id          Int       @id @default(autoincrement()) @db.UnsignedInt
-  created     DateTime  @default(now()) @db.Timestamp(0)
-  updated     DateTime? @default(now()) @db.Timestamp(0)
-  userId      Int       @db.UnsignedInt
-  friendPhone String?   @db.VarChar(50)
-  friendEmail String?   @db.VarChar(100)
-  user        user      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on friendreferral")
-
-  @@index([userId], map: "userId on friendreferral")
-}
-
 model league {
-  id               Int            @id @default(autoincrement()) @db.UnsignedInt
-  created          DateTime       @default(now()) @db.Timestamp(0)
-  updated          DateTime?      @default(now()) @db.Timestamp(0)
-  leagueCategoryId Int            @db.UnsignedInt
-  leagueName       String         @db.VarChar(256)
-  description      String?        @db.VarChar(2000)
-  dayOfWeek        Int?           @db.UnsignedInt
-  order            Int?           @db.UnsignedInt
-  price            Float?         @db.Float
-  leaguecategory   leaguecategory @relation(fields: [leagueCategoryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "leagueCategoryId on league")
+  id               Int               @id @default(autoincrement()) @db.UnsignedInt
+  created          DateTime          @default(now()) @db.Timestamp(0)
+  updated          DateTime?         @default(now()) @db.Timestamp(0)
+  leagueCategoryId Int               @db.UnsignedInt
+  leagueName       String            @db.VarChar(256)
+  description      String?           @db.VarChar(2000)
+  dayOfWeek        league_dayOfWeek?
+  order            Int?              @db.UnsignedInt
+  price            Float?            @db.Float
+  leaguecategory   leaguecategory    @relation(fields: [leagueCategoryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "leagueCategoryId on league")
   leaguemember     leaguemember[]
+  leagueseason     leagueseason[]
   leagueteam       leagueteam[]
 
   @@index([leagueCategoryId], map: "leagueCategoryId on league")
@@ -93,13 +82,16 @@ model leaguecategory {
 }
 
 model leaguemember {
-  id       Int       @id @default(autoincrement()) @db.UnsignedInt
-  created  DateTime  @default(now()) @db.Timestamp(0)
-  updated  DateTime? @default(now()) @db.Timestamp(0)
-  userId   Int       @default(0) @db.UnsignedInt
-  leagueId Int       @default(0) @db.UnsignedInt
-  league   league    @relation(fields: [leagueId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "leagueId on leaguemember")
-  user     user      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on leaguemember")
+  id       Int                  @id @default(autoincrement()) @db.UnsignedInt
+  created  DateTime             @default(now()) @db.Timestamp(0)
+  updated  DateTime?            @default(now()) @db.Timestamp(0)
+  userId   Int                  @default(0) @db.UnsignedInt
+  leagueId Int                  @default(0) @db.UnsignedInt
+  status   leaguemember_status  @default(Pending)
+  hasTeam  leaguemember_hasTeam @default(No)
+  price    Float                @default(0.00) @db.Float
+  league   league               @relation(fields: [leagueId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "leagueId on leaguemember")
+  user     user                 @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on leaguemember")
 
   @@index([leagueId], map: "leagueId on leaguemember")
   @@index([userId], map: "userId on leaguemember")
@@ -238,7 +230,7 @@ model refereepay {
   updated   DateTime? @default(now()) @db.Timestamp(0)
   userId    Int       @default(0) @db.UnsignedInt
   matchId   Int       @default(0) @db.UnsignedInt
-  payAmount Float     @default(0.00) @db.Float
+  payAmount Float     @default(0) @db.Float
   match     match     @relation(fields: [matchId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "matchId on refereepay")
   user      user      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on refereepay")
 
@@ -264,12 +256,15 @@ model refereesurvey {
 }
 
 model season {
-  id        Int       @id @default(autoincrement()) @db.UnsignedInt
-  created   DateTime  @default(now()) @db.Timestamp(0)
-  updated   DateTime? @default(now()) @db.Timestamp(0)
-  startDate DateTime  @db.Date
-  endDate   DateTime  @db.Date
-  name      String?   @db.VarChar(512)
+  id               Int            @id @default(autoincrement()) @db.UnsignedInt
+  created          DateTime       @default(now()) @db.Timestamp(0)
+  updated          DateTime?      @default(now()) @db.Timestamp(0)
+  startDate        DateTime       @db.Date
+  endDate          DateTime       @db.Date
+  lastRegisterDate DateTime       @db.Date
+  name             String         @db.VarChar(512)
+  numberOfGames    Int            @default(8) @db.UnsignedInt
+  leagueseason     leagueseason[]
 }
 
 model shirt {
@@ -335,12 +330,6 @@ model teammember {
   @@index([userId], map: "userId on teammember")
 }
 
-model template {
-  id      Int       @id @default(autoincrement()) @db.UnsignedInt
-  created DateTime  @default(now()) @db.Timestamp(0)
-  updated DateTime? @default(now()) @db.Timestamp(0)
-}
-
 model timeslot {
   id        Int       @id @default(autoincrement()) @db.UnsignedInt
   created   DateTime  @default(now()) @db.Timestamp(0)
@@ -355,17 +344,21 @@ model user {
   id                Int                 @id @default(autoincrement()) @db.UnsignedInt
   created           DateTime            @default(now()) @db.Timestamp(0)
   updated           DateTime?           @default(now()) @db.Timestamp(0)
+  email             String              @unique(map: "email") @db.VarChar(100)
+  token             String              @db.VarChar(512)
+  password          String              @db.VarChar(512)
   firstName         String              @db.VarChar(100)
   lastName          String              @db.VarChar(100)
   dob               String              @db.VarChar(100)
-  phone             String              @db.VarChar(100)
-  shirtSize         Int                 @db.UnsignedInt
-  sex               user_sex?           @default(M)
-  keeper            Int                 @default(0) @db.TinyInt
-  referee           Int                 @default(0) @db.TinyInt
-  admin             Int                 @default(0) @db.TinyInt
+  phone             BigInt              @default(0) @db.UnsignedBigInt
+  shirtSize         String              @db.VarChar(50)
+  sex               user_sex            @default(Male)
+  keeper            Boolean             @default(false)
+  terms             Boolean             @default(false)
+  referee           Boolean             @default(false)
+  admin             Boolean             @default(false)
   attendance        attendance[]
-  friendreferral    friendreferral[]
+  invitefriends     invitefriends[]
   leaguemember      leaguemember[]
   match             match[]
   matchfoul         matchfoul[]
@@ -377,6 +370,50 @@ model user {
   refereesurvey     refereesurvey[]
   shirtorder        shirtorder[]
   teammember        teammember[]
+  waitlist          waitlist[]
+}
+
+model invitefriends {
+  id      Int                  @id @default(autoincrement()) @db.UnsignedInt
+  created DateTime             @default(now()) @db.Timestamp(0)
+  updated DateTime?            @default(now()) @db.Timestamp(0)
+  userId  Int                  @db.UnsignedInt
+  phone   BigInt               @default(0)
+  email   String?              @db.VarChar(100)
+  status  invitefriends_status @default(Pending)
+  user    user                 @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on friendreferral")
+
+  @@index([userId], map: "userId on friendreferral")
+}
+
+model leagueseason {
+  id       Int       @id @default(autoincrement()) @db.UnsignedInt
+  created  DateTime  @default(now()) @db.Timestamp(0)
+  updated  DateTime? @default(now()) @db.Timestamp(0)
+  leagueId Int       @default(0) @db.UnsignedInt
+  seasonId Int       @default(0) @db.UnsignedInt
+  league   league    @relation(fields: [leagueId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "leagueId on leagueseason")
+  season   season    @relation(fields: [seasonId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "seasonId on leagueseason")
+
+  @@index([leagueId], map: "leagueId on leagueseason")
+  @@index([seasonId], map: "seasonId on leagueseason")
+}
+
+model temp {
+  id      Int       @id @default(autoincrement()) @db.UnsignedInt
+  created DateTime  @default(now()) @db.Timestamp(0)
+  updated DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model waitlist {
+  id      Int             @id @default(autoincrement()) @db.UnsignedInt
+  created DateTime        @default(now()) @db.Timestamp(0)
+  updated DateTime?       @default(now()) @db.Timestamp(0)
+  userId  Int             @default(0) @db.UnsignedInt
+  status  waitlist_status @default(Pending)
+  user    user            @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on waitlist")
+
+  @@index([userId], map: "userId on waitlist")
 }
 
 enum leaguecategory_sex {
@@ -409,6 +446,38 @@ enum shirtorder_status {
 }
 
 enum user_sex {
-  M
-  F
+  Male
+  Female
+}
+
+enum league_dayOfWeek {
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+  Sunday
+}
+
+enum leaguemember_status {
+  Pending
+  Help
+  Complete
+}
+
+enum leaguemember_hasTeam {
+  No
+  Yes
+}
+
+enum invitefriends_status {
+  Pending
+  Help
+  Sent
+}
+
+enum waitlist_status {
+  Pending
+  Removed
 }

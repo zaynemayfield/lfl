@@ -13,7 +13,15 @@ class UserController {
   validateUser (user) {
     const schema = Joi.object({
       email: Joi.string().email({ minDomainSegments: 2 }).min(4).required(),
-      password: Joi.string().min(3).required()
+      password: Joi.string().min(3).required(),
+      firstName: Joi.string().min(2).required(),
+      lastName: Joi.string().min(2).required(),
+      dob: Joi.required(),
+      shirtSize: Joi.required(),
+      sex: Joi.required(),
+      keeper: Joi.required(),
+      terms: Joi.required(),
+      phone: Joi.string(),
     })
     return schema.validate(user)
   }
@@ -31,6 +39,9 @@ class UserController {
   }
 
   async create (req, res) {
+  // REmove all unnessarcary things from the return like admin referee, etc.
+
+    console.log('Creating User!!')
     // Validate using Joi
     const response = this.validateUser(req.body)
     if (response.error) {
@@ -41,45 +52,31 @@ class UserController {
     if (checkEmail) {
       return new Helper(res).sendError(`${req.body.email} is already registered`, 'email')
     }
+
+    // Process phone number
+    let rawPhone = req.body.phone.replace(/\D/g, '')
+    rawPhone = parseInt(rawPhone)
+    console.log(rawPhone)
+    // Check keeper and terms
+    const keeper = Boolean(parseInt(req.body.keeper))
+    const terms = Boolean(parseInt(req.body.terms))
+    // Check Sex
+    console.log(req.body.sex)
+    if (req.body.sex !== 'Male' || req.body.sex !== 'Female') {
+      console.log('sex is neither male or female')
+    }
     // Hash Password
     const hash = await bcrypt.hash(req.body.password, 12)
-
-    // check to see if account has been deleted
-
+    console.log('This it he phone number' + rawPhone)
     // create user
-    const user = await prisma.user.create({ data: { email: req.body.email, password: hash, token: this.generateToken() } })
-    // remove password from object
-    delete user.password
-    // check if user uploaded an avatar
-    const avatar = req.files?.avatar
-    if (avatar) {
-      // handle creating path, moving, resizing, etc.
-      const path = `./resources/user/${user.id}`
-      await mkdir(path, { recursive: true })
-      await sharp(avatar.file)
-        .resize(240)
-        .toFile(`${path}/avatar.png`, function (err) {
-          if (!err) {
-            console.log('Modified and moved image')
-          }
-        })
-      // update db for the avatar url
-      const urlAvatar = `${path}/avatar.png`
-      user.avatar = urlAvatar.slice(1)
-
-      await prisma.user.update({
-        where: {
-          id: user.id
-        },
-        data: {
-          avatar: user.avatar
-        }
-      })
-    } else {
-      console.log('no avatar present')
-    }
-
-    return res.send({ user: user })
+    const user = await prisma.user.create({ data: { email: req.body.email, firstName: req.body.firstName, lastName: req.body.lastName, dob: req.body.dob, phone: rawPhone, shirtSize: req.body.shirtSize, sex: req.body.sex, keeper: keeper, terms: terms, password: hash, token: this.generateToken() } })
+    let newUser = {}
+    newUser.id = user.id
+    newUser.sex = user.sex
+    newUser.age = new Helper().calculateAge(user.dob)
+    console.log(newUser.age)
+    console.log('Sending user: ' + newUser)
+    return res.send({ user: newUser })
   }
 
   async read (req, res) {
@@ -88,7 +85,6 @@ class UserController {
     if (!user) {
       return new Helper(res).sendError('No user with that ID Exists', 'id')
     }
-    delete user.password
     return res.send({ user: user })
   }
 
@@ -105,11 +101,6 @@ class UserController {
       return new Helper(res).sendError('Unknown User Email Address', 'email')
     }
 
-    // check if account has been deleted
-    if (user.deleted) {
-      return new Helper(res).sendError('Account was deleted', 'Account')
-    }
-
     // check if passwords match
     const passwordCorrect = await bcrypt.compare(req.body.password, user.password)
     if (!passwordCorrect) {
@@ -120,28 +111,9 @@ class UserController {
     delete user.password
 
     // create JWT Token
-    const accessToken = jwt.sign({ _id: user.id, type: user.type }, process.env.SECRET_TOKEN, { expiresIn: '7d' })
+    const accessToken = jwt.sign({ _id: user.id, type: user.admin }, process.env.SECRET_TOKEN, { expiresIn: '7d' })
     console.log('logged in!')
     return res.send({ accessToken })
-  }
-
-  async delete (req, res) {
-    // check for permission to delete
-    const id = parseInt(req.params.id)
-    const userId = await prisma.user.findUnique({ where: { id: id } })
-    if (!userId) {
-      return new Helper(res).sendError('No user with that ID Exists', 'id')
-    }
-    try {
-      await prisma.user.update({
-        where: { id: userId.id },
-        data: { deleted: true }
-      })
-    } catch (error) {
-      return res.status(500).send({ errors: error.errors.map(error => { return { message: error.message, field: error.path } }) })
-    }
-
-    return res.send({ userId: userId })
   }
 }
 
