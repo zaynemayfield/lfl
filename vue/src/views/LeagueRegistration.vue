@@ -25,16 +25,27 @@ Games are between 6pm and 11pm." transform="translate(0 52.759)" font-size="14" 
       <!-- Get all leagues within a league category, turn and grab the league Id -->
       <form enctype="multipart/form-data" name="register" @submit.prevent="handleLeagueRegister">
         <input type="hidden" name="userId" :value="userId">
-          <div :key="index" v-for="(leagueCategory, index) in leagueCategories">
-        <h3><strong>{{ leagueCategory.name }}</strong> <span style="font-size: 14px">(Ages: {{ leagueCategory.ageFrom }} - {{ leagueCategory.ageTo }})</span></h3> <hr>
-        <div :key="index" v-for="(leagues, index) in leagueCategory.league" class="row mb-1">       
-          <div class="col">
-            <input v-if="eligibleForLeague(leagueCategory.sex, sex, leagueCategory.ageFrom, leagueCategory.ageTo, age)" :id="leagues.id" type="checkbox" name="league[]" :value="leagues.id" style="width: 20px; height: 20px;" /><span style="font-size:20px; font-weight: 700;"> &nbsp; {{ leagues.leagueName }} </span><span style="font-size: 14px;"> &nbsp; {{ leagues.dayOfWeek }}s - {{ financialFormat(leagues.price) }} </span>
-          </div>
-        </div>
-        <br />
-        </div>
 
+        <!-- SHOW SEASON -->
+        <div :key="index" v-for="(season, index) in seasons">
+        <h4><strong>{{ season.name }} Season: {{ dateFormat(season.startDate) }} - {{ dateFormat(season.endDate) }} </strong></h4>
+         <div :id="'season'+index" v-show="'season'+index">
+
+        <!-- SHOW Category -->
+         <div :key="index" v-for="(leagueSeason, index) in getUnique(season.leagueseason)">
+           <h3><strong>{{ leagueSeason.leaguecategory.name }} </strong> <span style="font-size: 14px">(Ages: {{ leagueSeason.leaguecategory.ageFrom }} - {{ leagueSeason.leaguecategory.ageTo }})</span></h3> <hr>
+            
+            <!-- SHOW League -->
+            <div :key="index" v-for="(leagues, index) in leagueSeason.leaguecategory.league" class="row mb-1">
+             <div class="col">
+               <input v-if="eligibleForLeague(leagueSeason.leaguecategory.sex, sex, leagueSeason.leaguecategory.ageFrom, leagueSeason.leaguecategory.ageTo, age)" :id="leagues.id" type="checkbox" name="league[]" :value="leagues.id" style="width: 20px; height: 20px;" /><span style="font-size:20px; font-weight: 700;"> &nbsp; {{ leagues.leagueName }} </span><span style="font-size: 14px;"> &nbsp; {{ leagues.dayOfWeek }}s - {{ financialFormat(leagues.price) }} </span>
+              </div>
+           </div>
+           
+            <br />
+            </div>
+        </div>
+        </div>
         <div class="row align-items-center">
           <div class="col mt-3">
             <div v-if="checkEligibility < 1">
@@ -73,7 +84,8 @@ Games are between 6pm and 11pm." transform="translate(0 52.759)" font-size="14" 
 import { inject, onBeforeMount, ref } from '@vue/runtime-core'
 import { useRoute } from 'vue-router'
 import financialFormat from '../utilities/financialFormat'
-const leagueCategories = ref({})
+import dateFormat from '../utilities/dateFormat'
+const seasons = ref({})
 const checkEligibility = ref(0)
 const apiClient = inject('$api', {})
 const route = useRoute()
@@ -105,12 +117,27 @@ const addToWaitList = (userId) => {
   apiClient.addToWaitList(userId)
 }
 
-const getLeagueCategories = async () => {
-  const leagueCategoriesResponse = await apiClient.getLeagueCategories()
-  leagueCategories.value = leagueCategoriesResponse?.leagueCategories
-  console.log(leagueCategories)
+// const getLeagueCategories = async () => {
+//   const leagueCategoriesResponse = await apiClient.getLeagueCategories()
+//   leagueCategories.value = leagueCategoriesResponse?.leagueCategories
+//   console.log(leagueCategories)
+// }
+const getSeasons = async () => {
+  const seasonsReponse = await apiClient.getLeagueCategories()
+  seasons.value = seasonsReponse?.leagueCategories
 }
-onBeforeMount(getLeagueCategories)
+
+// const logThis = (data) => {
+//   console.log(data)
+// }
+
+const getUnique = (array) => {
+  const unique = [...new Set(array)]
+  console.log(unique)
+  return unique
+}
+
+onBeforeMount(getSeasons)
 // Choose season Drop Down box
 // Also need to check current season and grab only leagues that are open for the season
 </script>
