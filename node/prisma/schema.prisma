@@ -60,9 +60,10 @@ model league {
   description      String?           @db.VarChar(2000)
   dayOfWeek        league_dayOfWeek?
   order            Int?              @db.UnsignedInt
+  maxTeams         Int?              @db.UnsignedInt
+  minTeams         Int?              @db.UnsignedInt
   price            Float?            @db.Float
   leaguecategory   leaguecategory    @relation(fields: [leagueCategoryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "leagueCategoryId on league")
-  leaguemember     leaguemember[]
   leagueseason     leagueseason[]
   leagueteam       leagueteam[]
 
@@ -70,30 +71,33 @@ model league {
 }
 
 model leaguecategory {
-  id          Int                @id @default(autoincrement()) @db.UnsignedInt
-  created     DateTime           @default(now()) @db.Timestamp(0)
-  updated     DateTime?          @default(now()) @db.Timestamp(0)
-  name        String             @db.VarChar(256)
-  description String?            @db.VarChar(2000)
-  ageFrom     Int                @db.UnsignedInt
-  ageTo       Int                @db.UnsignedInt
-  sex         leaguecategory_sex @default(Coed)
-  league      league[]
+  id           Int                @id @default(autoincrement()) @db.UnsignedInt
+  created      DateTime           @default(now()) @db.Timestamp(0)
+  updated      DateTime?          @default(now()) @db.Timestamp(0)
+  name         String             @db.VarChar(256)
+  description  String?            @db.VarChar(2000)
+  ageFrom      Int                @db.UnsignedInt
+  ageTo        Int                @db.UnsignedInt
+  maxLeagues   Int                @db.UnsignedInt
+  minLeagues   Int                @db.UnsignedInt
+  sex          leaguecategory_sex @default(Coed)
+  league       league[]
+  leagueseason leagueseason[]
 }
 
 model leaguemember {
-  id       Int                  @id @default(autoincrement()) @db.UnsignedInt
-  created  DateTime             @default(now()) @db.Timestamp(0)
-  updated  DateTime?            @default(now()) @db.Timestamp(0)
-  userId   Int                  @default(0) @db.UnsignedInt
-  leagueId Int                  @default(0) @db.UnsignedInt
-  status   leaguemember_status  @default(Pending)
-  hasTeam  leaguemember_hasTeam @default(No)
-  price    Float                @default(0.00) @db.Float
-  league   league               @relation(fields: [leagueId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "leagueId on leaguemember")
-  user     user                 @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on leaguemember")
+  id             Int                  @id @default(autoincrement()) @db.UnsignedInt
+  created        DateTime             @default(now()) @db.Timestamp(0)
+  updated        DateTime?            @default(now()) @db.Timestamp(0)
+  userId         Int                  @default(0) @db.UnsignedInt
+  leagueSeasonId Int                  @default(0) @db.UnsignedInt
+  status         leaguemember_status  @default(Pending)
+  hasTeam        leaguemember_hasTeam @default(No)
+  price          Float                @default(0.00) @db.Float
+  leagueseason   leagueseason         @relation(fields: [leagueSeasonId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "leagueSeasonId on leaguemember")
+  user           user                 @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on leaguemember")
 
-  @@index([leagueId], map: "leagueId on leaguemember")
+  @@index([leagueSeasonId], map: "leagueSeasonId on leaguemember")
   @@index([userId], map: "userId on leaguemember")
 }
 
@@ -111,31 +115,31 @@ model leagueteam {
 }
 
 model match {
-  id                          Int                 @id @default(autoincrement()) @db.UnsignedInt
-  created                     DateTime            @default(now()) @db.Timestamp(0)
-  updated                     DateTime?           @default(now()) @db.Timestamp(0)
-  timeSlotId                  Int                 @default(0) @db.UnsignedInt
-  fieldId                     Int                 @default(0) @db.UnsignedInt
-  homeTeamId                  Int                 @default(0) @db.UnsignedInt
-  awayTeamId                  Int                 @default(0) @db.UnsignedInt
-  refereeId                   Int                 @default(0) @db.UnsignedInt
-  homeGoals                   Int                 @default(0) @db.UnsignedInt
-  awayGoals                   Int                 @default(0) @db.UnsignedInt
-  team_match_awayTeamIdToteam team                @relation("match_awayTeamIdToteam", fields: [awayTeamId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "awayTeamId on match")
-  field                       field               @relation(fields: [fieldId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fieldId on match")
-  team_match_homeTeamIdToteam team                @relation("match_homeTeamIdToteam", fields: [homeTeamId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "homeTeamId on match")
-  user                        user                @relation(fields: [refereeId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "refereeId on match")
-  timeslot                    timeslot            @relation(fields: [timeSlotId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "timeSlotId on match")
-  attendance                  attendance[]
-  matchfoul                   matchfoul[]
-  matchgoal                   matchgoal[]
-  refereeattendance           refereeattendance[]
-  refereepay                  refereepay[]
-  refereesurvey               refereesurvey[]
+  id                                            Int                 @id @default(autoincrement()) @db.UnsignedInt
+  created                                       DateTime            @default(now()) @db.Timestamp(0)
+  updated                                       DateTime?           @default(now()) @db.Timestamp(0)
+  timeSlotId                                    Int                 @default(0) @db.UnsignedInt
+  fieldId                                       Int                 @default(0) @db.UnsignedInt
+  homeTeamSeasonId                              Int                 @default(0) @db.UnsignedInt
+  awayTeamSeasonId                              Int                 @default(0) @db.UnsignedInt
+  refereeId                                     Int                 @default(0) @db.UnsignedInt
+  homeGoals                                     Int                 @default(0) @db.UnsignedInt
+  awayGoals                                     Int                 @default(0) @db.UnsignedInt
+  teamseason_match_awayTeamSeasonIdToteamseason teamseason          @relation("match_awayTeamSeasonIdToteamseason", fields: [awayTeamSeasonId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "awayTeamSeasonId on match")
+  field                                         field               @relation(fields: [fieldId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fieldId on match")
+  teamseason_match_homeTeamSeasonIdToteamseason teamseason          @relation("match_homeTeamSeasonIdToteamseason", fields: [homeTeamSeasonId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "homeTeamSeasonId on match")
+  user                                          user                @relation(fields: [refereeId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "refereeId on match")
+  timeslot                                      timeslot            @relation(fields: [timeSlotId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "timeSlotId on match")
+  attendance                                    attendance[]
+  matchfoul                                     matchfoul[]
+  matchgoal                                     matchgoal[]
+  refereeattendance                             refereeattendance[]
+  refereepay                                    refereepay[]
+  refereesurvey                                 refereesurvey[]
 
-  @@index([awayTeamId], map: "awayTeamId on match")
+  @@index([awayTeamSeasonId], map: "awayTeamSeasonId on match")
   @@index([fieldId], map: "fieldId on match")
-  @@index([homeTeamId], map: "homeTeamId on match")
+  @@index([homeTeamSeasonId], map: "homeTeamSeasonId on match")
   @@index([refereeId], map: "refereeId on match")
   @@index([timeSlotId], map: "timeSlotId on match")
 }
@@ -156,18 +160,18 @@ model matchfoul {
 }
 
 model matchgoal {
-  id      Int       @id @default(autoincrement()) @db.UnsignedInt
-  created DateTime  @default(now()) @db.Timestamp(0)
-  updated DateTime? @default(now()) @db.Timestamp(0)
-  matchId Int       @default(0) @db.UnsignedInt
-  userId  Int       @default(0) @db.UnsignedInt
-  teamId  Int       @default(0) @db.UnsignedInt
-  match   match     @relation(fields: [matchId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "matchId on matchgoal")
-  team    team      @relation(fields: [teamId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teamId on matchgoal")
-  user    user      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on matchgoal")
+  id           Int        @id @default(autoincrement()) @db.UnsignedInt
+  created      DateTime   @default(now()) @db.Timestamp(0)
+  updated      DateTime?  @default(now()) @db.Timestamp(0)
+  matchId      Int        @default(0) @db.UnsignedInt
+  userId       Int        @default(0) @db.UnsignedInt
+  teamSeasonId Int        @default(0) @db.UnsignedInt
+  match        match      @relation(fields: [matchId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "matchId on matchgoal")
+  teamseason   teamseason @relation(fields: [teamSeasonId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teamSeasonId on matchgoal")
+  user         user       @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on matchgoal")
 
   @@index([matchId], map: "matchId on matchgoal")
-  @@index([teamId], map: "teamId on matchgoal")
+  @@index([teamSeasonId], map: "teamSeasonId on matchgoal")
   @@index([userId], map: "userId on matchgoal")
 }
 
@@ -192,18 +196,18 @@ model playercard {
 }
 
 model refereeattendance {
-  id      Int       @id @default(autoincrement()) @db.UnsignedInt
-  created DateTime  @default(now()) @db.Timestamp(0)
-  updated DateTime? @default(now()) @db.Timestamp(0)
-  matchId Int       @default(0) @db.UnsignedInt
-  userId  Int       @default(0) @db.UnsignedInt
-  teamId  Int       @default(0) @db.UnsignedInt
-  match   match     @relation(fields: [matchId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "refereeattendance_ibfk_1")
-  team    team      @relation(fields: [teamId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teamId on refereeattendance")
-  user    user      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "refereeattendance_ibfk_2")
+  id           Int        @id @default(autoincrement()) @db.UnsignedInt
+  created      DateTime   @default(now()) @db.Timestamp(0)
+  updated      DateTime?  @default(now()) @db.Timestamp(0)
+  matchId      Int        @default(0) @db.UnsignedInt
+  userId       Int        @default(0) @db.UnsignedInt
+  teamSeasonId Int        @default(0) @db.UnsignedInt
+  match        match      @relation(fields: [matchId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "refereeattendance_ibfk_1")
+  teamseason   teamseason @relation(fields: [teamSeasonId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teamSeasonId on refereeattendance")
+  user         user       @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "refereeattendance_ibfk_2")
 
   @@index([matchId], map: "matchId on matchgoal")
-  @@index([teamId], map: "teamId on refereeattendance")
+  @@index([teamSeasonId], map: "teamSeasonId on refereeattendance")
   @@index([userId], map: "userId on matchgoal")
 }
 
@@ -265,6 +269,7 @@ model season {
   name             String         @db.VarChar(512)
   numberOfGames    Int            @default(8) @db.UnsignedInt
   leagueseason     leagueseason[]
+  teamseason       teamseason[]
 }
 
 model shirt {
@@ -304,29 +309,27 @@ model sysvar {
 }
 
 model team {
-  id                           Int                 @id @default(autoincrement()) @db.UnsignedInt
-  created                      DateTime            @default(now()) @db.Timestamp(0)
-  updated                      DateTime?           @default(now()) @db.Timestamp(0)
-  name                         String              @db.VarChar(256)
-  clubteam                     clubteam[]
-  leagueteam                   leagueteam[]
-  match_match_awayTeamIdToteam match[]             @relation("match_awayTeamIdToteam")
-  match_match_homeTeamIdToteam match[]             @relation("match_homeTeamIdToteam")
-  matchgoal                    matchgoal[]
-  refereeattendance            refereeattendance[]
-  teammember                   teammember[]
+  id             Int          @id @default(autoincrement()) @db.UnsignedInt
+  created        DateTime     @default(now()) @db.Timestamp(0)
+  updated        DateTime?    @default(now()) @db.Timestamp(0)
+  name           String       @db.VarChar(256)
+  maxTeamMembers Int?         @default(0)
+  minTeamMembers Int?         @default(0)
+  clubteam       clubteam[]
+  leagueteam     leagueteam[]
+  teamseason     teamseason[]
 }
 
 model teammember {
-  id      Int       @id @default(autoincrement()) @db.UnsignedInt
-  created DateTime  @default(now()) @db.Timestamp(0)
-  updated DateTime? @default(now()) @db.Timestamp(0)
-  userId  Int       @default(0) @db.UnsignedInt
-  teamid  Int       @default(0) @db.UnsignedInt
-  team    team      @relation(fields: [teamid], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teamId on teammember")
-  user    user      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on teammember")
+  id           Int        @id @default(autoincrement()) @db.UnsignedInt
+  created      DateTime   @default(now()) @db.Timestamp(0)
+  updated      DateTime?  @default(now()) @db.Timestamp(0)
+  userId       Int        @default(0) @db.UnsignedInt
+  teamSeasonId Int        @default(0) @db.UnsignedInt
+  teamseason   teamseason @relation(fields: [teamSeasonId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teamSeasonId on teammember")
+  user         user       @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on teammember")
 
-  @@index([teamid], map: "teamId on teammember")
+  @@index([teamSeasonId], map: "teamSeasonId on teammember")
   @@index([userId], map: "userId on teammember")
 }
 
@@ -387,14 +390,18 @@ model invitefriends {
 }
 
 model leagueseason {
-  id       Int       @id @default(autoincrement()) @db.UnsignedInt
-  created  DateTime  @default(now()) @db.Timestamp(0)
-  updated  DateTime? @default(now()) @db.Timestamp(0)
-  leagueId Int       @default(0) @db.UnsignedInt
-  seasonId Int       @default(0) @db.UnsignedInt
-  league   league    @relation(fields: [leagueId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "leagueId on leagueseason")
-  season   season    @relation(fields: [seasonId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "seasonId on leagueseason")
+  id               Int            @id @default(autoincrement()) @db.UnsignedInt
+  created          DateTime       @default(now()) @db.Timestamp(0)
+  updated          DateTime?      @default(now()) @db.Timestamp(0)
+  leagueId         Int            @default(0) @db.UnsignedInt
+  seasonId         Int            @default(0) @db.UnsignedInt
+  leagueCategoryId Int            @default(0) @db.UnsignedInt
+  leaguecategory   leaguecategory @relation(fields: [leagueCategoryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "leagueCategoryId")
+  league           league         @relation(fields: [leagueId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "leagueId on leagueseason")
+  season           season         @relation(fields: [seasonId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "seasonId on leagueseason")
+  leaguemember     leaguemember[]
 
+  @@index([leagueCategoryId], map: "leagueCategoryId")
   @@index([leagueId], map: "leagueId on leagueseason")
   @@index([seasonId], map: "seasonId on leagueseason")
 }
@@ -414,6 +421,24 @@ model waitlist {
   user    user            @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId on waitlist")
 
   @@index([userId], map: "userId on waitlist")
+}
+
+model teamseason {
+  id                                       Int                 @id @default(autoincrement()) @db.UnsignedInt
+  teamId                                   Int                 @default(0) @db.UnsignedInt
+  seasonId                                 Int                 @default(0) @db.UnsignedInt
+  created                                  DateTime            @default(now()) @db.Timestamp(0)
+  updated                                  DateTime?           @default(now()) @db.Timestamp(0)
+  season                                   season              @relation(fields: [seasonId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "seasonId on teamseason")
+  team                                     team                @relation(fields: [teamId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teamId on teamseason")
+  match_match_awayTeamSeasonIdToteamseason match[]             @relation("match_awayTeamSeasonIdToteamseason")
+  match_match_homeTeamSeasonIdToteamseason match[]             @relation("match_homeTeamSeasonIdToteamseason")
+  matchgoal                                matchgoal[]
+  refereeattendance                        refereeattendance[]
+  teammember                               teammember[]
+
+  @@index([seasonId], map: "seasonId on teamseason")
+  @@index([teamId], map: "teamId on teamseason")
 }
 
 enum leaguecategory_sex {
