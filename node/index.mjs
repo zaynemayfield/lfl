@@ -37,7 +37,7 @@ busboy.extend(app, {
 // Routes that don't require authentication
 app.post('/user/register', userController.create.bind(userController))
 app.post('/user/login', userController.login.bind(userController))
-app.get('/league/getLeagueCategories', leagueController.getLeagueCategories.bind(leagueController))
+app.get('/league/getLeagueSeasons', leagueController.getLeagueSeasons.bind(leagueController))
 app.post('/league/register', leagueController.register.bind(leagueController))
 app.post('/referral/inviteFriendCreate', referralController.inviteFriendCreate.bind(referralController))
 app.get('/referral/addToWaitList/:id', referralController.addToWaitList.bind(referralController))

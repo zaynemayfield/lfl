@@ -4,19 +4,46 @@ const { PrismaClient } = pkg
 const prisma = new PrismaClient()
 
 class leagueController {
-  async getLeagueCategories (req, res) {
+  async getLeagueSeasons (req, res) {
     const id = parseInt(req.params.id)
     // Need to order results by field order desc
     // const leagueCategories = await prisma.leaguecategory.findMany({ include: { league: true } })
     // const leagueCategories = await prisma.leagueseason.findMany({ include: { season: true, league: { include: {leaguecategory: true } } } })
     // const leagueCategories = await prisma.season.findMany({ include: { leagueseason: { include: { leaguecategory: { include: { league: true } } } } } })
     // trying to figure out if you can get onlt the stuff I want
-    const leagueCategories = await prisma.season.findMany({ include: { leagueseason: { include: { leaguecategory: { include: { league: true } } } } } })
-    console.log(leagueCategories)
-    if (!leagueCategories) {
+    const leagueSeasons = await prisma.leagueseason.findMany({
+      include: {
+        season: true,
+        league: {
+          include: {
+            leaguecategory: true
+          }
+        }
+      },
+      orderBy: [
+        {
+          season: {
+            startDate: 'asc'
+          }
+        },
+        {
+          league: {
+            leaguecategory: {
+              name: 'asc'
+            }
+          }
+        },
+        {
+          league: {
+            order: 'asc'
+          }
+        }
+      ]
+    })
+    if (!leagueSeasons) {
       return new Helper(res).sendError('No leagues have been created', 'id')
     }
-    return res.send({ leagueCategories: leagueCategories })
+    return res.send({ leagueSeasons: leagueSeasons })
   }
 
   async getUserUnpaidLeagues (req, res) {

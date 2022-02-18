@@ -33,8 +33,8 @@ export default class ApiClient {
     return response
   }
 
-  async getLeagueCategories () {
-    return await this.request('/league/getLeagueCategories')
+  async getLeagueSeasons () {
+    return await this.request('/league/getLeagueSeasons')
   }
 
   async getProject (projectId) {
