@@ -51,7 +51,7 @@ automatically!" transform="translate(33 28)" font-size="20" font-family="SegoeUI
         <input id="no" type="checkbox" name="keeper" value="0" onclick="if(this.checked) {document.register.yes.checked=false;}" style="width: 20px; height: 20px;" /><span style="font-size:20px; font-weight: 700;"> No </span>
         <br />
         <label class="mt-3" style="font-size:20px; font-weight: 700;">Do you agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#exampleModal">terms?</a></label><br />
-        <span style="font-size:20px; font-weight: 700;"><input id="terms" type="checkbox" name="terms" value="1" style="width: 20px; height: 20px;" />  Yes </span>
+        <span style="font-size:20px; font-weight: 700;"><input id="terms" type="checkbox" name="terms" value="1" style="width: 20px; height: 20px;" required />  Yes </span>
 
         <div class="row align-items-center">
           <div class="col mt-3">
