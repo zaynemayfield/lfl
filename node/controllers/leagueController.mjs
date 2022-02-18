@@ -7,7 +7,11 @@ class leagueController {
   async getLeagueCategories (req, res) {
     const id = parseInt(req.params.id)
     // Need to order results by field order desc
-    const leagueCategories = await prisma.leaguecategory.findMany({ include: { league: true } })
+    // const leagueCategories = await prisma.leaguecategory.findMany({ include: { league: true } })
+    // const leagueCategories = await prisma.leagueseason.findMany({ include: { season: true, league: { include: {leaguecategory: true } } } })
+    // const leagueCategories = await prisma.season.findMany({ include: { leagueseason: { include: { leaguecategory: { include: { league: true } } } } } })
+    // trying to figure out if you can get onlt the stuff I want
+    const leagueCategories = await prisma.season.findMany({ include: { leagueseason: { include: { leaguecategory: { include: { league: true } } } } } })
     console.log(leagueCategories)
     if (!leagueCategories) {
       return new Helper(res).sendError('No leagues have been created', 'id')
