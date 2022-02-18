@@ -32,13 +32,14 @@ Games are between 6pm and 11pm." transform="translate(0 52.759)" font-size="14" 
          <div :id="'season'+index" v-show="'season'+index">
 
         <!-- SHOW Category -->
-         <div :key="index" v-for="(leagueSeason, index) in getUnique(season.leagueseason)">
-           <h3><strong>{{ leagueSeason.leaguecategory.name }} </strong> <span style="font-size: 14px">(Ages: {{ leagueSeason.leaguecategory.ageFrom }} - {{ leagueSeason.leaguecategory.ageTo }})</span></h3> <hr>
+         <div :key="index" v-for="(leagueCategory, index) in leagueCategories">
+           <h3><strong>{{ leagueCategory.name }} </strong> <span style="font-size: 14px">(Ages: {{ leagueCategory.ageFrom }} - {{ leagueCategory.ageTo }})</span></h3> <hr>
             
             <!-- SHOW League -->
-            <div :key="index" v-for="(leagues, index) in leagueSeason.leaguecategory.league" class="row mb-1">
+            <!-- Use a filter to get only the leagues for this season and category -->
+            <div :key="index" v-for="(leagueSeason, index) in leagueSeasons.filter(leagueSeason => leagueSeason.seasonId === season.id && leagueSeason.league.leagueCategoryId === leagueCategory.id)" class="row mb-1">
              <div class="col">
-               <input v-if="eligibleForLeague(leagueSeason.leaguecategory.sex, sex, leagueSeason.leaguecategory.ageFrom, leagueSeason.leaguecategory.ageTo, age)" :id="leagues.id" type="checkbox" name="league[]" :value="leagues.id" style="width: 20px; height: 20px;" /><span style="font-size:20px; font-weight: 700;"> &nbsp; {{ leagues.leagueName }} </span><span style="font-size: 14px;"> &nbsp; {{ leagues.dayOfWeek }}s - {{ financialFormat(leagues.price) }} </span>
+               <input v-if="eligibleForLeague(leagueCategory.sex, sex, leagueCategory.ageFrom, leagueCategory.ageTo, age)" :id="leagueSeason.id" type="checkbox" name="league[]" :value="leagueSeason.id" style="width: 20px; height: 20px;" /><span style="font-size:20px; font-weight: 700;"> &nbsp; {{ leagueSeason.league.leagueName }} </span><span style="font-size: 14px;"> &nbsp; {{ leagueSeason.league.dayOfWeek }}s - {{ financialFormat(leagueSeason.league.price) }} </span>
               </div>
            </div>
            
@@ -86,6 +87,8 @@ import { useRoute } from 'vue-router'
 import financialFormat from '../utilities/financialFormat'
 import dateFormat from '../utilities/dateFormat'
 const seasons = ref({})
+const leagueSeasons = ref({})
+const leagueCategories = ref({})
 const checkEligibility = ref(0)
 const apiClient = inject('$api', {})
 const route = useRoute()
@@ -122,22 +125,29 @@ const addToWaitList = (userId) => {
 //   leagueCategories.value = leagueCategoriesResponse?.leagueCategories
 //   console.log(leagueCategories)
 // }
-const getSeasons = async () => {
-  const seasonsReponse = await apiClient.getLeagueCategories()
-  seasons.value = seasonsReponse?.leagueCategories
+const getLeagueSeasons = async () => {
+  const leagueSeasonResponse = await apiClient.getLeagueSeasons()
+  const leagueSeasonData = leagueSeasonResponse?.leagueSeasons
+  const leagueCategoriesArray = []
+  const seasonsArray = []
+  for (const leagueSeason of leagueSeasonData) {
+    // by using the ID as the array key, we avoid making duplicates
+    // but we end up with a non-continuous array (if the first ID is 1, then array[0] is undefined)
+    leagueCategoriesArray[leagueSeason.league.leagueCategoryId] = leagueSeason.league.leaguecategory
+    seasonsArray[leagueSeason.season.id] = leagueSeason.season
+  }
+  // array.filter(Boolean) is shorthand for array.filter(value => !!value)
+  // -- filter out all false-y values (like undefined)
+  seasons.value = seasonsArray.filter(Boolean)
+  leagueCategories.value = leagueCategoriesArray.filter(Boolean)
+  leagueSeasons.value = leagueSeasonData
 }
 
 // const logThis = (data) => {
 //   console.log(data)
 // }
 
-const getUnique = (array) => {
-  const unique = [...new Set(array)]
-  console.log(unique)
-  return unique
-}
-
-onBeforeMount(getSeasons)
+onBeforeMount(getLeagueSeasons)
 // Choose season Drop Down box
 // Also need to check current season and grab only leagues that are open for the season
 </script>
