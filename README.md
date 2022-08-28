@@ -1,3 +1,6 @@
 # lfl
-can't change too much in the database as I have my head wrapped around a good bit of it.
-but making a change to store all the statistics in a new table would be worth it as well as taking out any unnessecary ones.
+****Work in progress****
+
+This is written using VS Code with Node.js as the backend API and with Vue as the front end.
+
+It is an indoor soccer registration and sceduling system. What makes it so great is the ability for players to be automatically assigned to a team and also each player pay individually instead of the current model of one team captain that has to pay the whole fee and collect money then from each player they recruit. This will also involve automatic scheduling of matches, which is quite the task on excel and a human, so this portion might take a bit longer.
